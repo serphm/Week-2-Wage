@@ -1,0 +1,238 @@
+@charset "UTF-8";
+
+* {margin:0;padding:0;}
+
+body {
+	background:#474544 url(main-bg.jpg) no-repeat top center;
+	font:smaller Arial, Helvetica, sans-serif;
+	line-height:2.3em;
+}
+/* ========		layout		============================================================== */
+#wrapper {
+	width:960px;
+	margin:0 auto;
+	padding: 0 0 14px 0;
+	overflow:hidden;
+}
+#header {
+	float:left;
+	width:960px;
+}
+img.logo {
+	position:absolute;
+	top:5px;
+	z-index:99;
+}
+/* ========		navigation   	========================================================== */
+#mainnav {
+	float:right;
+	list-style-type:none;
+	display:inline;
+	margin:68px 30px 0 0;
+	font-weight:lighter;
+	overflow:hidden;
+}
+#mainnav li {
+	display:inline;
+	padding:0 !important;
+	font-size:100%;
+}
+#mainnav li a {
+	float:left;
+	text-transform:uppercase;
+	color:#ffffff;
+	text-decoration:none;
+	padding:5px 12px 5px 12px !important;
+	margin: 0 0 0 2px;
+}
+#mainnav li a:hover {
+	background: trasnparent url(nav-bg.png) repeat-x top left;
+	color:#000;
+	}
+#mainnav li.current a:link {
+	background: transparent url(nav-bg.png) repeat-x top left;
+	color:#e2a74f;
+	}
+#mainnav li.current a:visited {
+	background: transparent url(nav-bg.png) repeat-x top left;
+	color:#e2a74f;
+	}
+
+/* ========		content		============================================================== */
+#content {
+	float:left;
+	background: transparent url(slideshow-bg.png) repeat-x top left;
+	width:860px;
+	min-height:377px;
+	padding:10px;
+	margin:0 0 20px 50px;
+	}
+	
+/* ========		footer		============================================================== */
+#footer {
+	width:880px;
+	padding:0 0 0 50px;
+	color:#ffffff;
+	font-size:100%;
+	text-align:center;
+}
+#footer img {
+	margin:10px 0 4px;	
+}
+/* ================================================================== */
+
+#fb{
+	float:right;
+}
+
+#gallerycontainer{
+	position:relative;
+	height:auto;
+	background: url("bkg-pat.png") repeat scroll 0 0 #F5F5F5;
+    color: #000;
+    font: 12px/1.5em Arial,Helvetica,sans-serif,"Arial Narrow";
+}
+#gallerycontainer2{
+	position: relative;
+	min-height: 100vh;
+	background: url("bkg-pat.png") repeat scroll 0 0 #F5F5F5;
+    color: #000;
+    font: 12px/1.5em Arial,Helvetica,sans-serif,"Arial Narrow";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.clearfix{
+	clear:both;
+}
+
+/* ========  sigup/login	============================================================== */
+.login{
+	overflow:hidden;
+	background:#ECBD2F;
+	padding:8px;
+	width: 500px;
+	margin-bottom: 20px;
+	border-radius: 5px;
+	text-align: center;
+}
+.login table{
+	margin: 0 auto;
+}
+.form{
+	overflow:hidden;
+	padding:20px;
+	width: 500px;
+}
+.form table{
+	margin: 0 auto;
+	width: 100%;
+}
+.signup-box {
+	background: #f5f5f5;
+	padding: 40px;
+	border-radius: 5px;
+	box-shadow: 0 0 10px rgba(0,0,0,0.1);
+	text-align: center;
+}
+.signup-box h1 {
+	margin-bottom: 30px;
+	font-size: 24px;
+	color: #333;
+	text-align: center;
+	width: 100%;
+	display: block;
+}
+.form-group {
+	margin-bottom: 20px;
+	text-align: center;
+}
+.form-label {
+	display: block;
+	margin-bottom: 8px;
+	color: #333;
+	font-size: 14px;
+	text-align: center;
+}
+#email, #pw, #cpw{
+	width: 80%;
+	padding: 12px;
+	margin: 0 auto 5px auto;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+#fname, #lname{
+	width: 80%;
+	padding: 12px;
+	margin: 0 auto 5px auto;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+#submit{
+	width: 200px;
+	padding: 12px;
+	cursor: pointer;
+	background: #4A90E2;
+	color: white;
+	border: 2px solid #357abd;
+	border-radius: 4px;
+	font-size: 16px;
+	transition: all 0.3s ease;
+	margin: 20px auto;
+	display: block;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+#submit:hover {
+    background: #357abd;
+    border-color: #2868b0;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+h1{
+	font:Tahoma, Geneva, sans-serif;
+	font-size:15px;
+	text-align: center;
+}
+h2{
+	font:Tahoma, Geneva, sans-serif;
+	font-size:11px;
+	color:#F00;
+	padding:0px;
+	margin-top:0px;
+	margin-bottom:0px;
+}
+h3{
+	font:"Courier New", Courier, monospace;
+	font-size:14px;
+	color:#666;
+	padding:3px;
+	margin:0px;
+	text-align: center;
+}
+#login_email, #login_password{
+	width:150px;
+	padding:5px;
+	font:Tahoma, Geneva, sans-serif;
+	font-size:11px;
+}
+#login{
+	padding: 8px 20px;
+	background: #ffffff;
+	border: 2px solid #ECBD2F;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	color: #ECBD2F;
+	font-weight: bold;
+}
+#login:hover {
+	background: #ECBD2F;
+	color: white;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* ========  date&time	============================================================== */
+#right{
+	float:right;
+}
