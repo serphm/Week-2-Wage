@@ -1,4 +1,39 @@
 <!DOCTYPE html>
+<?php
+    include 'php_includes/connection.php';
+    
+    // Initialize content array with default values
+    $content = [
+        'about_hero_title' => 'About Dimple Star Transport',
+        'about_hero_subtitle' => 'Your trusted transportation partner for decades',
+        'history_title' => 'Our History',
+        'history_content_1' => 'Photo taken on October 16, 1993. Napat Transit (now Dimple Star Transport) NVR-963 (fleet No 800) going to Alabang and jeepneys under the Light Rail Line in Taft Ave near United Nations Avenue, Ermita, Manila, Philippines.',
+        'history_content_2' => 'Year 2004 of May changes has been made, Napat Transit became Dimple Star Transport.',
+        'mission_title' => 'Our Mission',
+        'mission_content' => 'To provide superior transport service to Metro Manila and Mindoro Province commuters.',
+        'vision_title' => 'Our Vision',
+        'vision_content' => 'To lead the bus transport industry through its innovation service to the riding public.',
+        'stats_years' => '30+',
+        'stats_years_text' => 'Years of Service',
+        'stats_buses' => '50+',
+        'stats_buses_text' => 'Buses in Fleet',
+        'stats_routes' => '20+',
+        'stats_routes_text' => 'Routes Served',
+        'stats_passengers' => '1000+',
+        'stats_passengers_text' => 'Daily Passengers',
+        'footer_text' => 'Providing reliable and comfortable transportation services for over a decade.'
+    ];
+    
+    // Try to fetch content from database
+    $result = mysqli_query($con, "SELECT * FROM site_content");
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $content[$row['content_key']] = $row['content_value'];
+        }
+    }
+    
+    session_start();
+?>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -115,6 +150,16 @@
     
     .login-section a:hover {
         text-decoration: underline;
+    }
+    
+    /* Admin Link */
+    .admin-link {
+        background: var(--yellow);
+        color: var(--black);
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-weight: 600;
+        margin-left: 10px;
     }
     
     /* About Hero Section */
@@ -393,36 +438,61 @@
         </div>
     </header>
     
-    <!-- Login Section -->
-    <div class="login-section">
-        <div class="container">
-            <div id="right">
-                <?php
-                    if(isset($_SESSION['email'])){
-                        $email = $_SESSION['email'];
-                        echo "Welcome, ". $email. "!";
-                        echo " <a href='logout.php'>Logout</a>";
+<!-- Login Section -->
+<div class="login-section">
+    <div class="container">
+        <div id="right">
+            <?php
+                if(isset($_SESSION['email'])){
+                    $email = $_SESSION['email'];
+                    echo "Welcome, ". $email. "!";
+                    echo " <a href='logout.php'>Logout</a>";
+                    
+                    // Show admin link if user is admin
+                    if(isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
+                        echo " <a href='admin_dashboard.php' class='admin-link'>Admin Panel</a>";
+                        echo " <button id='auditTrailBtn' class='audit-btn'>View Changes</button>";
                     }
-                    if(empty($email)){
-                        echo "<a href='signlog.php'>Signup / Login</a>";
-                    }
-                ?>
-            </div>
+                }
+                if(empty($email)){
+                    echo "<a href='signlog.php'>Login</a>";
+                }
+            ?>
         </div>
     </div>
+</div>
+
+<style>
+    .audit-btn {
+        background: var(--yellow);
+        color: var(--black);
+        border: none;
+        padding: 5px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+        margin-left: 10px;
+        transition: var(--transition);
+    }
+    
+    .audit-btn:hover {
+        background: #e6c100;
+        transform: translateY(-2px);
+    }
+</style>
     
     <!-- About Hero Section -->
     <section class="about-hero">
         <div class="container">
-            <h1>About Dimple Star Transport</h1>
-            <p>Your trusted transportation partner for decades</p>
+            <h1><?php echo htmlspecialchars($content['about_hero_title']); ?></h1>
+            <p><?php echo htmlspecialchars($content['about_hero_subtitle']); ?></p>
         </div>
     </section>
     
     <!-- About Content -->
     <section class="about-content">
         <div class="container">
-            <h2 class="section-title">Our History</h2>
+            <h2 class="section-title"><?php echo htmlspecialchars($content['history_title']); ?></h2>
             
             <div class="history-content">
                 <div class="history-image">
@@ -430,9 +500,9 @@
                 </div>
                 
                 <div class="history-text">
-                    <p>Photo taken on October 16, 1993. Napat Transit (now Dimple Star Transport) NVR-963 (fleet No 800) going to Alabang and jeepneys under the Light Rail Line in Taft Ave near United Nations Avenue, Ermita, Manila, Philippines.</p>
+                    <p><?php echo htmlspecialchars($content['history_content_1']); ?></p>
                     
-                    <p>Year 2004 of May changes has been made, Napat Transit became Dimple Star Transport.</p>
+                    <p><?php echo htmlspecialchars($content['history_content_2']); ?></p>
                     
                     <div id="fb">
                         <?php include_once("php_includes/fblike.php"); ?>
@@ -454,16 +524,16 @@
                     <div class="mv-icon">
                         <i class="fas fa-bullseye"></i>
                     </div>
-                    <h3>Our Mission</h3>
-                    <p>To provide superior transport service to Metro Manila and Mindoro Province commuters.</p>
+                    <h3><?php echo htmlspecialchars($content['mission_title']); ?></h3>
+                    <p><?php echo htmlspecialchars($content['mission_content']); ?></p>
                 </div>
                 
                 <div class="mv-card">
                     <div class="mv-icon">
                         <i class="fas fa-eye"></i>
                     </div>
-                    <h3>Our Vision</h3>
-                    <p>To lead the bus transport industry through its innovation service to the riding public.</p>
+                    <h3><?php echo htmlspecialchars($content['vision_title']); ?></h3>
+                    <p><?php echo htmlspecialchars($content['vision_content']); ?></p>
                 </div>
             </div>
         </div>
@@ -474,23 +544,23 @@
         <div class="container">
             <div class="stats-container">
                 <div class="stat-item">
-                    <div class="stat-number">30+</div>
-                    <div class="stat-text">Years of Service</div>
+                    <div class="stat-number"><?php echo htmlspecialchars($content['stats_years']); ?></div>
+                    <div class="stat-text"><?php echo htmlspecialchars($content['stats_years_text']); ?></div>
                 </div>
                 
                 <div class="stat-item">
-                    <div class="stat-number">50+</div>
-                    <div class="stat-text">Buses in Fleet</div>
+                    <div class="stat-number"><?php echo htmlspecialchars($content['stats_buses']); ?></div>
+                    <div class="stat-text"><?php echo htmlspecialchars($content['stats_buses_text']); ?></div>
                 </div>
                 
                 <div class="stat-item">
-                    <div class="stat-number">20+</div>
-                    <div class="stat-text">Routes Served</div>
+                    <div class="stat-number"><?php echo htmlspecialchars($content['stats_routes']); ?></div>
+                    <div class="stat-text"><?php echo htmlspecialchars($content['stats_routes_text']); ?></div>
                 </div>
                 
                 <div class="stat-item">
-                    <div class="stat-number">1000+</div>
-                    <div class="stat-text">Daily Passengers</div>
+                    <div class="stat-number"><?php echo htmlspecialchars($content['stats_passengers']); ?></div>
+                    <div class="stat-text"><?php echo htmlspecialchars($content['stats_passengers_text']); ?></div>
                 </div>
             </div>
         </div>
@@ -502,7 +572,7 @@
             <div class="footer-container">
                 <div class="footer-about">
                     <a href="index.php"><img src="images/footer-logo.jpg" alt="Dimple Star Transport" class="footer-logo" /></a>
-                    <p>Providing reliable and comfortable transportation services for over a decade.</p>
+                    <p><?php echo htmlspecialchars($content['footer_text']); ?></p>
                 </div>
                 
                 <div class="footer-links">
@@ -531,6 +601,289 @@
             </div>
         </div>
     </footer>
+
+    <!-- Audit Trail Modal -->
+<div id="auditTrailModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Content Change History</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="audit-filters">
+                <input type="text" id="auditSearch" placeholder="Search changes..." onkeyup="filterAuditTrail()">
+                <select id="contentFilter" onchange="filterAuditTrail()">
+                    <option value="">All Content</option>
+                    <option value="about_hero_title">Hero Title</option>
+                    <option value="about_hero_subtitle">Hero Subtitle</option>
+                    <option value="history_title">History Title</option>
+                    <option value="history_content">History Content</option>
+                    <option value="mission">Mission</option>
+                    <option value="vision">Vision</option>
+                    <option value="stats">Statistics</option>
+                    <option value="footer_text">Footer Text</option>
+                </select>
+            </div>
+            <div class="audit-list" id="auditList">
+                <p>Loading audit trail...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5);
+    }
+    
+    .modal-content {
+        background-color: var(--white);
+        margin: 5% auto;
+        padding: 0;
+        border-radius: 8px;
+        width: 80%;
+        max-width: 900px;
+        box-shadow: var(--shadow);
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .modal-header {
+        background: var(--green);
+        color: var(--white);
+        padding: 20px;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .modal-header h2 {
+        margin: 0;
+        color: var(--yellow);
+    }
+    
+    .close {
+        color: var(--white);
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    
+    .close:hover {
+        color: var(--yellow);
+    }
+    
+    .modal-body {
+        padding: 20px;
+        overflow-y: auto;
+        flex: 1;
+    }
+    
+    /* Audit Trail Styles */
+    .audit-filters {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .audit-filters input,
+    .audit-filters select {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-family: 'Open Sans', sans-serif;
+    }
+    
+    .audit-filters input {
+        flex: 2;
+        min-width: 200px;
+    }
+    
+    .audit-filters select {
+        flex: 1;
+        min-width: 150px;
+    }
+    
+    .audit-item {
+        border-left: 4px solid var(--green);
+        padding: 15px;
+        margin-bottom: 15px;
+        background: var(--light-gray);
+        border-radius: 4px;
+    }
+    
+    .audit-item-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .audit-action {
+        font-weight: 600;
+        color: var(--green);
+    }
+    
+    .audit-date {
+        color: #666;
+        font-size: 0.9em;
+    }
+    
+    .audit-admin {
+        color: var(--black);
+        font-weight: 500;
+    }
+    
+    .audit-changes {
+        margin-top: 10px;
+        padding: 10px;
+        background: var(--white);
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+    
+    .change-old {
+        color: #e74c3c;
+        text-decoration: line-through;
+        margin-right: 10px;
+    }
+    
+    .change-new {
+        color: var(--green);
+        font-weight: 500;
+    }
+    
+    .no-changes {
+        text-align: center;
+        color: #666;
+        padding: 40px;
+    }
+    
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+    }
+</style>
+
+<script>
+    // Audit Trail Modal functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('auditTrailModal');
+        const btn = document.getElementById('auditTrailBtn');
+        const span = document.getElementsByClassName('close')[0];
+        
+        if (btn) {
+            btn.onclick = function() {
+                modal.style.display = 'block';
+                loadAuditTrail();
+            }
+        }
+        
+        span.onclick = function() {
+            modal.style.display = 'none';
+        }
+        
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    });
+    
+    // Load audit trail data
+    function loadAuditTrail() {
+        const auditList = document.getElementById('auditList');
+        auditList.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading changes...</div>';
+        
+        fetch('get_audit_trail.php')
+            .then(response => response.json())
+            .then(data => {
+                if (data.length > 0) {
+                    displayAuditTrail(data);
+                } else {
+                    auditList.innerHTML = '<div class="no-changes">No changes recorded yet.</div>';
+                }
+            })
+            .catch(error => {
+                auditList.innerHTML = '<div class="no-changes">Error loading audit trail.</div>';
+                console.error('Error:', error);
+            });
+    }
+    
+    // Display audit trail data
+    function displayAuditTrail(data) {
+        const auditList = document.getElementById('auditList');
+        let html = '';
+        
+        data.forEach(item => {
+            const changeDate = new Date(item.changed_at).toLocaleString();
+            const contentName = formatContentKey(item.content_key);
+            
+            html += `
+                <div class="audit-item" data-content="${item.content_key}">
+                    <div class="audit-item-header">
+                        <span class="audit-action">${contentName}</span>
+                        <span class="audit-date">${changeDate}</span>
+                    </div>
+                    <div class="audit-admin">By: ${item.admin_email}</div>
+                    <div class="audit-changes">
+                        <span class="change-old">${escapeHtml(item.old_value || 'Empty')}</span>
+                        → 
+                        <span class="change-new">${escapeHtml(item.new_value || 'Empty')}</span>
+                    </div>
+                </div>
+            `;
+        });
+        
+        auditList.innerHTML = html;
+    }
+    
+    // Filter audit trail
+    function filterAuditTrail() {
+        const searchText = document.getElementById('auditSearch').value.toLowerCase();
+        const contentFilter = document.getElementById('contentFilter').value;
+        const items = document.querySelectorAll('.audit-item');
+        
+        items.forEach(item => {
+            const contentKey = item.getAttribute('data-content');
+            const text = item.textContent.toLowerCase();
+            
+            const matchesSearch = text.includes(searchText);
+            const matchesFilter = !contentFilter || contentKey === contentFilter;
+            
+            item.style.display = (matchesSearch && matchesFilter) ? 'block' : 'none';
+        });
+    }
+    
+    // Helper functions
+    function formatContentKey(key) {
+        return key.split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ')
+            .replace('Content ', '');
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+</script>
 
     <script>
         // Mobile menu toggle

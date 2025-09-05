@@ -1,52 +1,20 @@
 <?php
-// Start session at the very beginning
+// signlog.php
 session_start();
+$con = mysqli_connect("localhost", "root", "", "users_db");
 
-// Database connection with error handling
-$con = mysqli_connect("localhost", "root", "");
 $errors = array();
 $successful = "";
 
-// Check if connection was successful
-if (!$con) {
-    die("Connection failed: " . mysqli_connect_error());
-}
-
-// Create database if it doesn't exist
-$db_name = "users_db";
-$create_db = "CREATE DATABASE IF NOT EXISTS $db_name";
-if (mysqli_query($con, $create_db)) {
-    mysqli_select_db($con, $db_name);
-    
-    // Create table if it doesn't exist
-    $create_table = "CREATE TABLE IF NOT EXISTS members (
-        id INT(11) AUTO_INCREMENT PRIMARY KEY,
-        fname VARCHAR(50) NOT NULL,
-        lname VARCHAR(50) NOT NULL,
-        email VARCHAR(100) NOT NULL UNIQUE,
-        salt VARCHAR(3) NOT NULL,
-        password VARCHAR(64) NOT NULL,
-        reg_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )";
-    
-    if (!mysqli_query($con, $create_table)) {
-        die("Error creating table: " . mysqli_error($con));
-    }
-} else {
-    die("Error creating database: " . mysqli_error($con));
-}
-
-// Check if the form was submitted
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Determine if it's a login or signup based on the submit button name
+    // Check if it's a login request
     if (isset($_POST['login_submit'])) {
-        // LOGIN PROCESSING
         $login_email = mysqli_real_escape_string($con, $_POST['login_email']);
         $login_password = $_POST['login_password'];
         
         // Check if user exists
         $search_query = mysqli_query($con, "SELECT * FROM members WHERE email = '$login_email'");
-        if ($search_query && mysqli_num_rows($search_query) == 1) {
+        if (mysqli_num_rows($search_query) == 1) {
             $user = mysqli_fetch_assoc($search_query);
             $hashed_password = hash('sha256', $user['salt'] . hash('sha256', $login_password));
             
@@ -54,7 +22,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // Password is correct, set session
                 $_SESSION['email'] = $user['email'];
                 $_SESSION['fname'] = $user['fname'];
-                header("Location: index.php");
+                $_SESSION['is_admin'] = $user['is_admin'];
+                
+                // Redirect based on user type
+                if ($user['is_admin'] == 1) {
+                    header("Location: admin_dashboard.php");
+                } else {
+                    header("Location: index.php");
+                }
                 exit();
             } else {
                 $errors['login'] = "Invalid email or password.";
@@ -63,8 +38,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $errors['login'] = "Invalid email or password.";
         }
     } 
+    // Check if it's a signup request
     else if (isset($_POST['signup_submit'])) {
-        // SIGNUP PROCESSING
+        // Existing signup validation code...
         if (preg_match("/\S+/", $_POST['fname']) === 0) {
             $errors['fname'] = "* First Name is required.";
         }
@@ -95,36 +71,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $password = hash('sha256', $salt . $password);
             
             $search_query = mysqli_query($con, "SELECT * FROM members WHERE email = '$email'");
-            if ($search_query) {
-                $num_row = mysqli_num_rows($search_query);
-                if ($num_row >= 1) {
-                    $errors['email'] = "Email address is unavailable.";
-                } else {
-                    $sql = "INSERT INTO members(`fname`, `lname`, `email`, `salt`, `password`) VALUES ('$fname', '$lname', '$email', '$salt', '$password')";
-                    $query = mysqli_query($con, $sql);
-                    if ($query) {
-                        $_POST['fname'] = '';
-                        $_POST['lname'] = '';
-                        $_POST['email'] = '';
-                        
-                        $successful = "You are successfully registered. You can now login.";
-                    } else {
-                        $errors['database'] = "Registration failed. Please try again. Error: " . mysqli_error($con);
-                    }
-                }
+            $num_row = mysqli_num_rows($search_query);
+            if ($num_row >= 1) {
+                $errors['email'] = "Email address is unavailable.";
             } else {
-                $errors['database'] = "Database query failed. Please try again.";
+                $sql = "INSERT INTO members(`fname`, `lname`, `email`, `salt`, `password`, `is_admin`) 
+                        VALUES ('$fname', '$lname', '$email', '$salt', '$password', 0)";
+                $query = mysqli_query($con, $sql);
+                if ($query) {
+                    $_POST['fname'] = '';
+                    $_POST['lname'] = '';
+                    $_POST['email'] = '';
+                    
+                    $successful = "You are successfully registered. You can now login.";
+                } else {
+                    $errors['database'] = "Registration failed. Please try again.";
+                }
             }
         }
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sign Up / Login - Dimple Star Transport</title>
+<title>Login / Sign Up - Dimple Star Transport</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 <link rel="icon" href="images/icon.ico" type="image/x-icon">
@@ -396,6 +370,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         display: block;
     }
     
+    .admin-note {
+        background: rgba(255, 215, 0, 0.1);
+        padding: 10px;
+        border-radius: 4px;
+        margin-top: 15px;
+        font-size: 14px;
+        text-align: center;
+        border-left: 3px solid var(--yellow);
+    }
+    
     /* Footer */
     footer {
         background: var(--black);
@@ -497,6 +481,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <li><i class="fas fa-check-circle"></i> Faster checkout process</li>
                         <li><i class="fas fa-check-circle"></i> Earn reward points</li>
                     </ul>
+                    
+                    <div class="admin-note">
+                        <strong>Admin Access:</strong> Use admin@dimplestar.com / admin123
+                    </div>
                 </div>
                 
                 <div class="auth-right">
@@ -566,7 +554,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <input type="email" class="form-control" name="email" id="email" placeholder="E-mail Address" value="<?php if(isset($_POST['email'])){echo htmlspecialchars($_POST['email']);} ?>" required>
                                 <?php if(isset($errors['email'])): ?>
                                     <div class="error-message"><?php echo $errors['email']; ?></div>
-                                    <?php endif; ?>
+                                <?php endif; ?>
                             </div>
                             
                             <div class="form-group">

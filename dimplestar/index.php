@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<?php
+	include 'php_includes/connection.php';
+?>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -441,23 +444,28 @@
         </div>
     </header>
     
-    <!-- Login Section -->
-    <div class="login-section">
-        <div class="container">
-            <div id="right">
-                <?php
-                    if(isset($_SESSION['email'])){
-                        $email = $_SESSION['email'];
-                        echo "Welcome, ". $email. "!";
-                        echo " <a href='logout.php'>Logout</a>";
+ <!-- Login Section -->
+<div class="login-section">
+    <div class="container">
+        <div id="right">
+            <?php
+                if(isset($_SESSION['email'])){
+                    $email = $_SESSION['email'];
+                    echo "Welcome, ". $email. "!";
+                    echo " <a href='logout.php'>Logout</a>";
+                    
+                    // Show admin link if user is admin
+                    if(isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
+                        echo " <a href='admin_dashboard.php' class='admin-link'>Admin Panel</a>";
                     }
-                    if(empty($email)){
-                        echo "<a href='signlog.php'>SignUp / Login</a>";
-                    }
-                ?>
-            </div>
+                }
+                if(empty($email)){
+                    echo "<a href='signlog.php'>Login</a>";
+                }
+            ?>
         </div>
     </div>
+</div>
     
     <!-- Hero Section -->
     <section class="hero">
