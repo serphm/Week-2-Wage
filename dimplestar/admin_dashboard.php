@@ -19,8 +19,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Get the old value for audit trail
             $old_value_query = "SELECT content_value FROM site_content WHERE content_key = '$content_key'";
             $old_value_result = mysqli_query($con, $old_value_query);
-            $old_value_row = mysqli_fetch_assoc($old_value_result);
-            $old_value = $old_value_row['content_value'];
+            $old_value = '';
+            
+            if ($old_value_result && mysqli_num_rows($old_value_result) > 0) {
+                $old_value_row = mysqli_fetch_assoc($old_value_result);
+                $old_value = $old_value_row['content_value'];
+            }
             
             // Update the content
             $query = "UPDATE site_content SET content_value = '$content_value' WHERE content_key = '$content_key'";

@@ -4,35 +4,38 @@
     
     // Initialize content array with default values
     $content = [
-        'about_hero_title' => 'About Dimple Star Transport',
-        'about_hero_subtitle' => 'Your trusted transportation partner for decades',
-        'history_title' => 'Our History',
-        'history_content_1' => 'Photo taken on October 16, 1993. Napat Transit (now Dimple Star Transport) NVR-963 (fleet No 800) going to Alabang and jeepneys under the Light Rail Line in Taft Ave near United Nations Avenue, Ermita, Manila, Philippines.',
-        'history_content_2' => 'Year 2004 of May changes has been made, Napat Transit became Dimple Star Transport.',
-        'mission_title' => 'Our Mission',
-        'mission_content' => 'To provide superior transport service to Metro Manila and Mindoro Province commuters.',
-        'vision_title' => 'Our Vision',
-        'vision_content' => 'To lead the bus transport industry through its innovation service to the riding public.',
-        'stats_years' => '30+',
-        'stats_years_text' => 'Years of Service',
-        'stats_buses' => '50+',
-        'stats_buses_text' => 'Buses in Fleet',
-        'stats_routes' => '20+',
-        'stats_routes_text' => 'Routes Served',
-        'stats_passengers' => '1000+',
-        'stats_passengers_text' => 'Daily Passengers',
-        'footer_text' => 'Providing reliable and comfortable transportation services for over a decade.'
-    ];
-    
-    // Try to fetch content from database
-    $result = mysqli_query($con, "SELECT * FROM site_content");
-    if ($result) {
-        while ($row = mysqli_fetch_assoc($result)) {
-            $content[$row['content_key']] = $row['content_value'];
-        }
+    'about_hero_title' => 'About Dimple Star Transport',
+    'about_hero_subtitle' => 'Your trusted transportation partner for decades',
+    'history_title' => 'Our History',
+    'history_content_1' => 'Photo taken on October 16, 1993. Napat Transit (now Dimple Star Transport) NVR-963 (fleet No 800) going to Alabang and jeepneys under the Light Rail Line in Taft Ave near United Nations Avenue, Ermita, Manila, Philippines.',
+    'history_content_2' => 'Year 2004 of May changes has been made, Napat Transit became Dimple Star Transport.',
+    'mission_title' => 'Our Mission',
+    'mission_content' => 'To provide superior transport service to Metro Manila and Mindoro Province commuters.',
+    'vision_title' => 'Our Vision',
+    'vision_content' => 'To lead the bus transport industry through its innovation service to the riding public.',
+    'stats_years' => '30+',
+    'stats_years_text' => 'Years of Service',
+    'stats_buses' => '50+',
+    'stats_buses_text' => 'Buses in Fleet',
+    'stats_routes' => '20+',
+    'stats_routes_text' => 'Routes Served',
+    'stats_passengers' => '1000+',
+    'stats_passengers_text' => 'Daily Passengers',
+    'footer_text' => 'Providing reliable and comfortable transportation services for over a decade.'
+];
+
+// Try to fetch content from database
+$result = mysqli_query($con, "SELECT * FROM site_content");
+if ($result) {
+    while ($row = mysqli_fetch_assoc($result)) {
+        $content[$row['content_key']] = $row['content_value'];
     }
-    
-    session_start();
+} else {
+    // Use default values if query fails
+    error_log("Failed to fetch site content: " . mysqli_error($con));
+}
+
+session_start();
 ?>
 <html lang="en">
 <head>
@@ -415,6 +418,41 @@
             padding: 25px;
         }
     }
+    /* Audit Trail Button */
+.audit-btn {
+    background: var(--yellow);
+    color: var(--black);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-left: 10px;
+    transition: var(--transition);
+    font-family: 'Montserrat', sans-serif;
+}
+
+.audit-btn:hover {
+    background: #e6c100;
+    transform: translateY(-2px);
+}
+
+/* Responsive adjustments for modal */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
+    }
+    
+    .audit-filters {
+        flex-direction: column;
+    }
+    
+    .audit-filters input,
+    .audit-filters select {
+        width: 100%;
+    }
+}
 </style>
 </head>
 <body>
@@ -807,23 +845,28 @@
     
     // Load audit trail data
     function loadAuditTrail() {
-        const auditList = document.getElementById('auditList');
-        auditList.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading changes...</div>';
-        
-        fetch('get_audit_trail.php')
-            .then(response => response.json())
-            .then(data => {
-                if (data.length > 0) {
-                    displayAuditTrail(data);
-                } else {
-                    auditList.innerHTML = '<div class="no-changes">No changes recorded yet.</div>';
-                }
-            })
-            .catch(error => {
-                auditList.innerHTML = '<div class="no-changes">Error loading audit trail.</div>';
-                console.error('Error:', error);
-            });
-    }
+    const auditList = document.getElementById('auditList');
+    auditList.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading changes...</div>';
+    
+    fetch('get_audit_trail.php')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data && data.length > 0) {
+                displayAuditTrail(data);
+            } else {
+                auditList.innerHTML = '<div class="no-changes">No changes recorded yet.</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading audit trail:', error);
+            auditList.innerHTML = '<div class="no-changes">Error loading audit trail. Please try again later.</div>';
+        });
+}
     
     // Display audit trail data
     function displayAuditTrail(data) {

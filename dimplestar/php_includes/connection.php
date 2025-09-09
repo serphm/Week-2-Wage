@@ -12,6 +12,16 @@ if (!$con) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
+// Function to safely execute queries
+function safe_query($con, $query) {
+    $result = mysqli_query($con, $query);
+    if (!$result) {
+        error_log("Query failed: " . mysqli_error($con) . " - Query: " . $query);
+        return false;
+    }
+    return $result;
+}
+
 // Create site_content table if it doesn't exist
 $create_table = "
 CREATE TABLE IF NOT EXISTS site_content (
@@ -21,30 +31,36 @@ CREATE TABLE IF NOT EXISTS site_content (
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )";
 
-mysqli_query($con, $create_table);
+safe_query($con, $create_table);
 
-// Check if admin user exists, if not create one
-$check_admin = "SELECT * FROM members WHERE is_admin = 1 LIMIT 1";
-$admin_result = mysqli_query($con, $check_admin);
+// Create audit_trail table if it doesn't exist
+$create_audit_table = "
+CREATE TABLE IF NOT EXISTS audit_trail (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    admin_email VARCHAR(100) NOT NULL,
+    action VARCHAR(255) NOT NULL,
+    content_key VARCHAR(100) NOT NULL,
+    old_value TEXT,
+    new_value TEXT,
+    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)";
 
-if (mysqli_num_rows($admin_result) == 0) {
-    // Create default admin user
-    $admin_email = "admin@dimplestar.com";
-    $admin_password = hash('sha256', 'admin123');
-    $salt = substr(md5(uniqid(rand(), true)), 0, 3);
-    $admin_password = hash('sha256', $salt . $admin_password);
-    
-    $create_admin = "INSERT INTO members (fname, lname, email, salt, password, is_admin) 
-                     VALUES ('Super', 'Admin', '$admin_email', '$salt', '$admin_password', 1)";
-    mysqli_query($con, $create_admin);
+safe_query($con, $create_audit_table);
+
+// Check if site_content table has data
+$check_content = "SELECT COUNT(*) as count FROM site_content";
+$result = safe_query($con, $check_content);
+
+$content_count = 0;
+if ($result) {
+    $row = mysqli_fetch_assoc($result);
+    $content_count = $row['count'];
+} else {
+    // If query failed, assume table is empty
+    $content_count = 0;
 }
 
-// Insert default content if table is empty
-$check_content = "SELECT COUNT(*) as count FROM site_content";
-$result = mysqli_query($con, $check_content);
-$row = mysqli_fetch_assoc($result);
-
-if ($row['count'] == 0) {
+if ($content_count == 0) {
     $default_content = [
         'about_hero_title' => 'About Dimple Star Transport',
         'about_hero_subtitle' => 'Your trusted transportation partner for decades',
@@ -65,27 +81,69 @@ if ($row['count'] == 0) {
         'stats_passengers_text' => 'Daily Passengers',
         'footer_text' => 'Providing reliable and comfortable transportation services for over a decade.'
     ];
-}
-foreach ($default_content as $key => $value) {
-    $value = mysqli_real_escape_string($con, $value);
-    $insert = "INSERT INTO site_content (content_key, content_value) VALUES ('$key', '$value')";
-    if (mysqli_query($con, $insert)) {
-        $audit_query = "INSERT INTO audit_trail (admin_email, action, content_key, old_value, new_value) 
-                       VALUES ('system', 'Initial content created', '$key', '', '$value')";
-        mysqli_query($con, $audit_query);
+    
+    foreach ($default_content as $key => $value) {
+        $value = mysqli_real_escape_string($con, $value);
+        $insert = "INSERT INTO site_content (content_key, content_value) VALUES ('$key', '$value')";
+        if (safe_query($con, $insert)) {
+            // Record initial creation in audit trail
+            $audit_query = "INSERT INTO audit_trail (admin_email, action, content_key, old_value, new_value) 
+                           VALUES ('system', 'Initial content created', '$key', '', '$value')";
+            safe_query($con, $audit_query);
+        }
     }
 }
-// Create audit_trail table if it doesn't exist
-$create_audit_table = "
-CREATE TABLE IF NOT EXISTS audit_trail (
-    id INT(11) AUTO_INCREMENT PRIMARY KEY,
-    admin_email VARCHAR(100) NOT NULL,
-    action VARCHAR(255) NOT NULL,
-    content_key VARCHAR(100) NOT NULL,
-    old_value TEXT,
-    new_value TEXT,
-    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)";
 
-mysqli_query($con, $create_audit_table);
+// Check if admin user exists, if not create one
+$check_admin = "SELECT * FROM members WHERE is_admin = 1 LIMIT 1";
+$admin_result = safe_query($con, $check_admin);
+
+if (!$admin_result || mysqli_num_rows($admin_result) == 0) {
+    // Create default admin user
+    $admin_email = "admin@dimplestar.com";
+    $admin_password = hash('sha256', 'admin123');
+    $salt = substr(md5(uniqid(rand(), true)), 0, 3);
+    $admin_password = hash('sha256', $salt . $admin_password);
+    
+    // First check if members table has is_admin column
+    $check_column = "SHOW COLUMNS FROM members LIKE 'is_admin'";
+    $column_result = safe_query($con, $check_column);
+    
+    if (!$column_result || mysqli_num_rows($column_result) == 0) {
+        // Add is_admin column if it doesn't exist
+        $alter_table = "ALTER TABLE members ADD COLUMN is_admin TINYINT(1) DEFAULT 0";
+        safe_query($con, $alter_table);
+    }
+    
+    $create_admin = "INSERT INTO members (fname, lname, email, salt, password, is_admin) 
+                     VALUES ('Super', 'Admin', '$admin_email', '$salt', '$admin_password', 1)";
+    safe_query($con, $create_admin);
+}
+
+// php_includes/db_helper.php
+function safe_fetch_assoc($result) {
+    if (!$result) {
+        return false;
+    }
+    
+    try {
+        return mysqli_fetch_assoc($result);
+    } catch (Exception $e) {
+        error_log("Database fetch error: " . $e->getMessage());
+        return false;
+    }
+}
+
+function safe_num_rows($result) {
+    if (!$result) {
+        return 0;
+    }
+    
+    try {
+        return mysqli_num_rows($result);
+    } catch (Exception $e) {
+        error_log("Database num_rows error: " . $e->getMessage());
+        return 0;
+    }
+}
 ?>
